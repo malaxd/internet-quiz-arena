@@ -12,77 +12,65 @@ import PublicPanel from "./components/PublicPanel";
 // Create a client for react-query
 const queryClient = new QueryClient();
 
-// HostPanel Component (dodajemy timer)
-const HostPanel = () => {
-  const [timer, setTimer] = useState(30); // Domyślny czas - 30 sekund
-  const [isRunning, setIsRunning] = useState(false); // Flaga, czy timer jest uruchomiony
-  const [inputTime, setInputTime] = useState(30); // Czas wprowadzany przez użytkownika
+const App = () => {
+  const [timer, setTimer] = useState(30); // Initial timer value (30 seconds)
+  const [isRunning, setIsRunning] = useState(false);
 
+  // Start the timer
   const startTimer = () => {
-    setTimer(inputTime); // Rozpoczynamy od wprowadzonego czasu
     setIsRunning(true);
   };
 
+  // Stop the timer
   const stopTimer = () => {
     setIsRunning(false);
   };
 
+  // Reset the timer
   const resetTimer = () => {
-    setTimer(inputTime); // Resetujemy timer do początkowego czasu
+    setTimer(30);
     setIsRunning(false);
   };
 
+  // Timer logic
   useEffect(() => {
-    if (!isRunning) return; // Jeśli timer nie jest aktywny, nic nie rób
-    if (timer === 0) {
-      setIsRunning(false); // Zatrzymaj timer, jeśli czas minął
-      return;
+    if (isRunning) {
+      const interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+
+      if (timer <= 0) {
+        clearInterval(interval);
+        setIsRunning(false);
+      }
+
+      return () => clearInterval(interval);
     }
+  }, [isRunning, timer]);
 
-    const interval = setInterval(() => {
-      setTimer(prev => prev - 1); // Zmniejszamy czas co sekundę
-    }, 1000); // Co 1 sekundę
-
-    return () => clearInterval(interval); // Posprzątanie po timerze
-  }, [isRunning, timer]); // Używamy timeru i flagi isRunning
-
-  return (
-    <div>
-      <h1>Panel Prowadzącego</h1>
-      <div>
-        <h2>Czas: {timer}s</h2>
-        {/* Pole do ustawienia czasu */}
-        <input 
-          type="number" 
-          value={inputTime}
-          onChange={(e) => setInputTime(parseInt(e.target.value, 10))}
-          min="0"
-          className="border p-2 mb-4"
-        />
-        <button onClick={startTimer} className="bg-blue-500 text-white p-2 mr-2">Start Timer</button>
-        <button onClick={stopTimer} className="bg-red-500 text-white p-2 mr-2">Stop Timer</button>
-        <button onClick={resetTimer} className="bg-yellow-500 text-white p-2">Reset Timer</button>
-      </div>
-    </div>
-  );
-};
-
-const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <main> {/* Dodanie elementu main */}
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/host" element={<HostPanel />} />
-              <Route path="/public" element={<PublicPanel />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </main> {/* Koniec elementu main */}
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/host" element={<HostPanel />} />
+            <Route path="/public" element={<PublicPanel />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </BrowserRouter>
+
+        <div className="timer-container">
+          <h2>Panel Prowadzącego</h2>
+          <p>Czas: {timer}s</p>
+          <div>
+            <button onClick={startTimer} disabled={isRunning}>Start Timer</button>
+            <button onClick={stopTimer} disabled={!isRunning}>Stop Timer</button>
+            <button onClick={resetTimer}>Reset Timer</button>
+          </div>
+        </div>
       </TooltipProvider>
     </QueryClientProvider>
   );
