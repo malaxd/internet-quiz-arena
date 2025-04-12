@@ -81,7 +81,7 @@ const HostPanel: React.FC = () => {
             <CategorySelector 
               categories={gameState.categories}
               selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
+              onSelectCategory={handleCategorySelect}
               onSpinWheel={spinWheel}
             />
             
