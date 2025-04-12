@@ -160,7 +160,7 @@ const PublicPanel: React.FC = () => {
             <h2 className="text-xl font-bold mb-4">Gracze</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-10 gap-3">
               {samplePlayers
-                .filter(p => p.status !== 'eliminated' || p.status === 'lucky-loser')
+                .filter(p => p.status !== 'eliminated')
                 .map(player => (
                   <PlayerCard 
                     key={player.id} 
@@ -177,7 +177,7 @@ const PublicPanel: React.FC = () => {
           <div className="quiz-card p-4">
             <h2 className="text-xl font-bold mb-4">Kamery uczestników</h2>
             <VideoGrid 
-              players={samplePlayers.filter(p => p.status !== 'eliminated' || p.status === 'lucky-loser')} 
+              players={samplePlayers.filter(p => p.status !== 'eliminated')} 
               hostVideoUrl="https://player.twitch.tv/?channel=example&parent=localhost"
               currentPlayerId={currentPlayerId}
             />
