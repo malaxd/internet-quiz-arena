@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Player, 
@@ -11,6 +10,7 @@ import {
 import PlayerCard from './PlayerCard';
 import QuestionDisplay from './QuestionDisplay';
 import CategoryWheel from './CategoryWheel';
+import QuestionDataImport from './QuestionDataImport';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
@@ -107,12 +107,14 @@ const initialGameState: GameState = {
 
 const HostPanel: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
+  const [questions, setQuestions] = useState<Question[]>(sampleQuestions);
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>("easy");
   const [showWheel, setShowWheel] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
+  const [showImport, setShowImport] = useState(false);
   
   const { toast } = useToast();
 
@@ -192,7 +194,7 @@ const HostPanel: React.FC = () => {
   const getAvailableQuestions = () => {
     if (!selectedCategory) return [];
     
-    return sampleQuestions.filter(
+    return questions.filter(
       q => q.categoryId === selectedCategory.id && 
            q.difficulty === selectedDifficulty
     );
@@ -320,6 +322,20 @@ const HostPanel: React.FC = () => {
     setIsSpinning(true);
   };
 
+  const handleImportSuccess = (newQuestions: Question[], newCategories: Category[]) => {
+    setQuestions(newQuestions);
+    setGameState(prev => ({
+      ...prev,
+      categories: newCategories
+    }));
+    setShowImport(false);
+    
+    toast({
+      title: "Pytania zaimportowane",
+      description: `Dodano ${newQuestions.length} pytań w ${newCategories.length} kategoriach.`
+    });
+  };
+
   return (
     <div className="quiz-container">
       <div className="max-w-7xl mx-auto">
@@ -329,12 +345,24 @@ const HostPanel: React.FC = () => {
           <div className="flex items-center gap-3">
             <Button 
               variant="outline" 
+              onClick={() => setShowImport(!showImport)}
+            >
+              {showImport ? "Ukryj import" : "Import pytań"}
+            </Button>
+            <Button 
+              variant="outline" 
               onClick={() => window.open('/public', '_blank')}
             >
               Otwórz Panel Publiczny
             </Button>
           </div>
         </header>
+        
+        {showImport && (
+          <div className="quiz-card p-4 mb-6">
+            <QuestionDataImport onImportSuccess={handleImportSuccess} />
+          </div>
+        )}
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Panel kontrolny po lewej */}
@@ -364,7 +392,7 @@ const HostPanel: React.FC = () => {
               </Button>
               
               <div className="grid grid-cols-2 gap-2">
-                {sampleCategories.map(category => (
+                {gameState.categories.map(category => (
                   <Button 
                     key={category.id}
                     variant="outline"
@@ -467,7 +495,7 @@ const HostPanel: React.FC = () => {
                   {selectedCategory && (
                     <Button 
                       className="quiz-button-secondary"
-                      onClick={() => selectQuestion(getAvailableQuestions()[0])}
+                      onClick={() => getAvailableQuestions().length > 0 && selectQuestion(getAvailableQuestions()[0])}
                       disabled={getAvailableQuestions().length === 0}
                     >
                       Losowe pytanie

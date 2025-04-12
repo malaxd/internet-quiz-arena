@@ -14,9 +14,8 @@ const VideoGrid: React.FC<VideoGridProps> = ({
   hostVideoUrl,
   currentPlayerId
 }) => {
-  const activePlayers = players.filter(
-    p => p.status !== 'eliminated' || p.status === 'lucky-loser'
-  );
+  // Fixed filtering logic to avoid type comparison error
+  const activePlayers = players.filter(p => p.status !== 'eliminated');
 
   const getGridCols = () => {
     const count = activePlayers.length;

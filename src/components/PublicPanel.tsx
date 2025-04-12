@@ -5,6 +5,8 @@ import PlayerCard from './PlayerCard';
 import QuestionDisplay from './QuestionDisplay';
 import VideoGrid from './VideoGrid';
 import CategoryWheel from './CategoryWheel';
+import NicknameForm from './NicknameForm';
+import { useToast } from "@/components/ui/use-toast";
 
 // Przykładowe dane takie same jak w HostPanel dla prezentacji
 const samplePlayers: Player[] = [
@@ -47,6 +49,18 @@ const PublicPanel: React.FC = () => {
   const [showWheel, setShowWheel] = useState(false);
   const [currentPlayerId, setCurrentPlayerId] = useState("p4");
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [userNickname, setUserNickname] = useState<string>(() => {
+    return localStorage.getItem("quiz_nickname") || "";
+  });
+  
+  const { toast } = useToast();
+
+  // Save nickname to localStorage when it changes
+  useEffect(() => {
+    if (userNickname) {
+      localStorage.setItem("quiz_nickname", userNickname);
+    }
+  }, [userNickname]);
 
   // Symulacja interakcji dla prezentacji
   useEffect(() => {
@@ -103,6 +117,14 @@ const PublicPanel: React.FC = () => {
     };
   }, []);
 
+  const handleSetNickname = (nickname: string) => {
+    setUserNickname(nickname);
+    toast({
+      title: "Nick został ustawiony",
+      description: `Teraz będziesz widoczny jako: ${nickname}`
+    });
+  };
+
   return (
     <div className="quiz-container overflow-hidden">
       <div className="max-w-7xl mx-auto">
@@ -111,6 +133,20 @@ const PublicPanel: React.FC = () => {
             Internet Quiz Arena
           </h1>
         </header>
+        
+        {/* Nickname Form */}
+        <div className="quiz-card p-4 mb-6">
+          <h2 className="text-xl font-bold mb-4">Ustaw swój nick</h2>
+          <NicknameForm 
+            onSetNickname={handleSetNickname} 
+            currentNickname={userNickname}
+          />
+          {userNickname && (
+            <p className="mt-2 text-sm text-gray-400">
+              Twój obecny nick: <span className="font-bold text-white">{userNickname}</span>
+            </p>
+          )}
+        </div>
         
         <div className="grid grid-cols-1 gap-6">
           {/* Główny panel z pytaniem lub kołem */}
