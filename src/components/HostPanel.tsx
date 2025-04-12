@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import QuestionDisplay from './QuestionDisplay';
 import CategoryWheel from './CategoryWheel';
@@ -41,6 +40,40 @@ const HostPanel: React.FC = () => {
 
   const availableQuestions = getAvailableQuestions();
 
+  // Timer logic
+  const [timer, setTimer] = useState(30); // Start at 30 seconds
+  const [isRunning, setIsRunning] = useState(false); // Timer state
+
+  // Start timer
+  const startTimer = () => setIsRunning(true);
+
+  // Stop timer
+  const stopTimer = () => setIsRunning(false);
+
+  // Reset timer
+  const resetTimer = () => {
+    setTimer(30); // Reset to 30 seconds
+    setIsRunning(false); // Stop timer
+  };
+
+  // Timer effect
+  useEffect(() => {
+    if (isRunning) {
+      const interval = setInterval(() => {
+        setTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setIsRunning(false); // Stop timer when it reaches 0
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(interval); // Cleanup interval on unmount
+    }
+  }, [isRunning]);
+
   return (
     <div className="quiz-container">
       <div className="max-w-7xl mx-auto">
@@ -68,82 +101,12 @@ const HostPanel: React.FC = () => {
             <QuestionDataImport onImportSuccess={handleImportSuccess} />
           </div>
         )}
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Panel kontrolny po lewej */}
-          <div className="lg:col-span-1 space-y-6">
-            <RoundSelector 
-              rounds={sampleRounds}
-              currentRoundId={gameState.currentRound.id}
-              onStartRound={startRound}
-            />
-            
-            <CategorySelector 
-              categories={gameState.categories}
-              selectedCategory={selectedCategory}
-              onSelectCategory={handleCategorySelect}
-              onSpinWheel={spinWheel}
-            />
-            
-            {selectedCategory && (
-              <DifficultySelector 
-                selectedDifficulty={selectedDifficulty}
-                onSelectDifficulty={setSelectedDifficulty}
-              />
-            )}
-            
-            {selectedCategory && availableQuestions.length > 0 && (
-              <QuestionsList 
-                questions={availableQuestions}
-                selectedCategory={selectedCategory}
-                onSelectQuestion={selectQuestion}
-              />
-            )}
-          </div>
-          
-          {/* Panel główny po prawej */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Obecna runda */}
-            <CurrentRoundInfo round={gameState.currentRound} />
-            
-            {/* Koło kategorii lub pytanie */}
-            {showWheel ? (
-              <div className="quiz-card p-6 flex justify-center">
-                <CategoryWheel 
-                  categories={gameState.categories}
-                  onSelect={handleCategorySelect}
-                  isSpinning={isSpinning}
-                />
-              </div>
-            ) : selectedQuestion ? (
-              <QuestionDisplay
-                question={selectedQuestion}
-                onAnswer={handleAnswer}
-                timeLeft={gameState.timeLeft}
-              />
-            ) : (
-              <QuestionActionsPanel 
-                onSpinWheel={spinWheel}
-                onSelectRandomQuestion={() => {
-                  if (availableQuestions.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * availableQuestions.length);
-                    selectQuestion(availableQuestions[randomIndex]);
-                  }
-                }}
-                hasQuestions={availableQuestions.length > 0}
-              />
-            )}
-            
-            {/* Gracze */}
-            <PlayersPanel 
-              players={gameState.players}
-              currentPlayerId={gameState.currentPlayerId}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
-export default HostPanel;
+        {/* Add Timer Panel */}
+        <div className="timer-panel mb-6">
+          <h2 className="text-xl">Czas: {timer}s</h2>
+          <div className="flex gap-3 mt-2">
+            <Button onClick={startTimer} disabled={isRunning}>Start Timer</Button>
+            <Button onClick={stopTimer} disabled={!isRunning}>Stop Timer</Button>
+            <Button onClick
+              
